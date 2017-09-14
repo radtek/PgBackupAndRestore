@@ -6,6 +6,7 @@ namespace PgBackupAndRestore
     internal class SQL
     {
 
+
         internal static string GetConnectionString()
         {
             Npgsql.NpgsqlConnectionStringBuilder csb = new Npgsql.NpgsqlConnectionStringBuilder();
@@ -29,7 +30,49 @@ namespace PgBackupAndRestore
         } // End Function GetConnectionString 
 
 
-        public static void CreateDb(string dbName)
+        public static void CreateUser(string userName, string password)
+        {
+            string role = "CREATE ROLE \"" + userName.Replace("\"", "\"\"") + "\" "
+                + "WITH PASSWORD '" + password.Replace("'", "''") + "' "
+                + "LOGIN SUPERUSER CREATEDB CREATEROLE REPLICATION VALID UNTIL 'infinity'; ";
+
+            using (Npgsql.NpgsqlConnection con = new Npgsql.NpgsqlConnection(GetConnectionString()))
+            {
+
+                using (Npgsql.NpgsqlCommand cmd = con.CreateCommand())
+                {
+                    if (con.State != System.Data.ConnectionState.Open)
+                        con.Open();
+
+                    // https://stackoverflow.com/questions/8092086/create-postgresql-role-user-if-it-doesnt-exist
+                    // https://stackoverflow.com/questions/8546759/how-to-check-if-a-postgres-user-exists
+                    cmd.CommandText = "SELECT COUNT(*) FROM pg_roles WHERE rolname = '" + userName.Replace("'", "''") + "'; ";
+                    // cmd.CommandText = "SELECT COUNT(*) FROM pg_catalog.pg_user WHERE usename = '" + userName.Replace("'", "''") + "'";
+
+                    long countOfExistingUsersWithThisName = (long)cmd.ExecuteScalar();
+
+                    if (countOfExistingUsersWithThisName == 0)
+                    {
+                        cmd.CommandText = role;
+                        cmd.ExecuteNonQuery();
+                    } // End if (dbCount > 0) 
+
+                    if (con.State != System.Data.ConnectionState.Closed)
+                        con.Close();
+                } // End Using cmd 
+
+            } // End using con 
+
+        } // End Sub CreateUser 
+
+
+        public static void CreateUser()
+        {
+            CreateUser(System.Environment.UserName, "TOP_SECRET");
+        } // End Sub CreateUser 
+
+
+        public static void DropCreateDb(string dbName)
         {
 
             string sql = @"
@@ -48,15 +91,15 @@ CREATE DATABASE " + dbName + @"
             using (Npgsql.NpgsqlConnection con = new Npgsql.NpgsqlConnection(GetConnectionString()))
             {
 
-                using (var cmd = con.CreateCommand())
+                using (Npgsql.NpgsqlCommand cmd = con.CreateCommand())
                 {
                     if (con.State != System.Data.ConnectionState.Open)
                         con.Open();
 
                     cmd.CommandText = "SELECT COUNT(*) FROM pg_database WHERE datname = '" + dbName.Replace("'", "''") + "'";
-                    long dbCount = (long)cmd.ExecuteScalar();
+                    long countOfExistingDbsWithTHisName = (long)cmd.ExecuteScalar();
 
-                    if (dbCount > 0)
+                    if (countOfExistingDbsWithTHisName > 0)
                     {
                         cmd.CommandText = @"SELECT pg_terminate_backend(pg_stat_activity.pid) 
 FROM pg_stat_activity 
@@ -77,7 +120,7 @@ AND pid <> pg_backend_pid();";
 
             } // End using con 
 
-        } // End Sub CreateDb 
+        } // End Sub DropCreateDb 
 
 
     } // End Class SQL 

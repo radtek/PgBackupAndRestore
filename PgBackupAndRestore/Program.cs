@@ -7,7 +7,6 @@ namespace PgBackupAndRestore
     {
 
 
-
         static void Main(string[] argv)
         {
             string wd = @"E:\ImportData\AllPGDUMP";
@@ -18,11 +17,11 @@ namespace PgBackupAndRestore
             foreach (string filename in filez)
             {
                 string dbName = System.IO.Path.GetFileNameWithoutExtension(filename);
-                SQL.CreateDb(dbName);
+                SQL.CreateUser(System.Environment.MachineName, "TOP_SECRET");
+                SQL.DropCreateDb(dbName);
 
                 using (System.Diagnostics.Process p = new System.Diagnostics.Process())
                 {
-
                     string args = "-c -d [database_name] [dumpfile_name]";
                     args = args.Replace("[database_name]", dbName).Replace("[dumpfile_name]", filename);
 
@@ -31,8 +30,13 @@ namespace PgBackupAndRestore
                     p.StartInfo = new System.Diagnostics.ProcessStartInfo(path_to_pg_restore, args);
                     p.StartInfo.WorkingDirectory = wd;
 
-                    // p.StartInfo.EnvironmentVariables = System.Environment.GetEnvironmentVariables();
-                    // p.StartInfo.EnvironmentVariables.Add("key", "value");
+                    // p.StartInfo.EnvironmentVariables = 
+                    // EnvironmentVariables is read-only
+                    System.Collections.IDictionary ev = System.Environment.GetEnvironmentVariables();
+                    foreach (object key in ev.Keys)
+                    {
+                        p.StartInfo.EnvironmentVariables.Add((string) key, (string) ev[key]);
+                    }
 
                     p.Start();
                     p.WaitForExit();
@@ -43,7 +47,6 @@ namespace PgBackupAndRestore
                 } // End using p 
 
             } // Next filename 
-
 
             System.Console.WriteLine(System.Environment.NewLine);
             System.Console.WriteLine(" --- Press any key to continue --- ");
