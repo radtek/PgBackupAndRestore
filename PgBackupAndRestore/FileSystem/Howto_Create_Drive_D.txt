@@ -1,0 +1,59 @@
+﻿
+https://en.wikipedia.org/wiki/SUBST
+https://github.com/ildar-shaimordanov/psubst#Inconstancy
+
+
+subst j: d:\inetpub
+subst j: /D
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\DOS Devices] 
+"D:"="\\??\\C:\\VirtualDrives\\DriveD"
+
+
+Installing it at HKEY_CURRENT_USER has the benefit of having different setups for each user. 
+I prefer to stick the user space setup as long as a system service dose not depend on the device.
+
+REGEDIT4
+[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run]
+"F Drive"="subst F: D:\\mount\\db"
+"G Drive"="subst G: D:\\mount\\log"
+
+
+
+help subst
+Associates a path with a drive letter.
+
+SUBST [drive1: [drive2:]path]
+SUBST drive1: /D
+
+  drive1:        Specifies a virtual drive to which you want to assign a path.
+  [drive2:]path  Specifies a physical drive and path you want to assign to
+                 a virtual drive.
+  /D             Deletes a substituted (virtual) drive.
+
+Type SUBST with no parameters to display a list of current virtual drives.
+
+
+
+help subst
+Weist einem Pfad eine Laufwerkbezeichnung zu.
+
+SUBST [Laufwerk1: [Laufwerk2:]Pfad]
+SUBST Laufwerk1: /D
+
+  Laufwerk1:       Bezeichnung für virtuelles Laufwerk, die dem Pfad
+                   zugewiesen werden soll.
+  [Laufwerk2:]Pfad Physisches Laufwerk und physischer Pfad, die dem
+                   virtuellen Laufwerk zugewiesen werden sollen.
+  /D               Hebt die Zuordnung für das (virtuelle) Laufwerk1
+                   wieder auf.
+
+SUBST ohne Parameter zeigt die mit SUBST erstellten, virtuellen Laufwerke an.
+
+
+
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\DOS Devices] 
+"Z:"="\\??\\C:\\Documents and Settings\\All Users\\Shared Documents" 
+
+
